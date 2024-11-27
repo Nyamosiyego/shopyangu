@@ -9,37 +9,111 @@ import {
   Tooltip,
   ResponsiveContainer
 } from 'recharts'
-import { 
-  MOCK_DASHBOARD_METRICS,
-  MOCK_STOCK_STATUS,
-  MOCK_TOP_SHOPS
-} from './constants'
-
-
+import { useEffect, useState } from 'react'
+import { productsApi } from './api/products' 
+import { shopsApi } from './api/shops' 
+import toast from 'react-hot-toast'
 
 export default function Dashboard() {
-  console.log(MOCK_STOCK_STATUS);
+  const [metrics, setMetrics] = useState({
+    totalShops: 0,
+    totalProducts: 0,
+    totalValue: 0,
+    totalStock: 0
+  })
+  const [stockStatus, setStockStatus] = useState([])
+  const [topShops, setTopShops] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true)
+
+        // Fetch products and shops data
+        const [productsResponse, shopsResponse] = await Promise.all([
+          productsApi.getProducts(),
+          shopsApi.getShops()
+        ])
+
+        const products = productsResponse.data
+        const shops = shopsResponse.data
+
+        // Calculate metrics
+        const totalProducts = products.length
+        const totalValue = products.reduce((sum, product) => sum + product.price * product.stockLevel, 0)
+        const totalStock = products.reduce((sum, product) => sum + product.stockLevel, 0)
+        const totalShops = shops.length
+
+        // Aggregate stock status
+        const stockStatusData = products.reduce((acc, product) => {
+          let status;
+          if (product.stockLevel > 5) {
+            status = 'In Stock';
+          } else if (product.stockLevel === 0) {
+            status = 'Out of Stock';
+          } else {
+            status = 'Low Stock';
+          }
+          const existing = acc.find(item => item.name === status)
+          if (existing) {
+            existing.value += 1
+          } else {
+            acc.push({ name: status, value: 1 })
+          }
+          return acc
+        }, [])
+
+        // Determine top shops by stock level
+        const shopStockLevels = shops.map(shop => ({
+          name: shop.name,
+          stock: products
+            .filter(product => product.shopId === shop._id)
+            .reduce((sum, product) => sum + product.stockLevel, 0)
+        }))
+        const topShopsData = shopStockLevels
+          .sort((a, b) => b.stock - a.stock)
+          .slice(0, 5)
+
+        setMetrics({ totalShops, totalProducts, totalValue, totalStock })
+        setStockStatus(stockStatusData)
+        setTopShops(topShopsData)
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+        toast.error('Failed to load dashboard data')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchData()
+  }, [])
+
+  if (loading) {
+    return <p className="text-center text-gray-500">Loading dashboard...</p>
+  }
+
   return (
     <div className="space-y-8">
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         <MetricCard
           title="Total Shops"
-          value={MOCK_DASHBOARD_METRICS.totalShops}
+          value={metrics.totalShops}
           description="Active shops on platform"
         />
         <MetricCard
           title="Total Products"
-          value={MOCK_DASHBOARD_METRICS.totalProducts}
+          value={metrics.totalProducts}
           description="Listed products"
         />
         <MetricCard
           title="Total Value"
-          value={`$${MOCK_DASHBOARD_METRICS.totalValue.toLocaleString()}`}
+          value={`$${metrics.totalValue.toLocaleString()}`}
           description="Value of all products"
         />
         <MetricCard
           title="Total Stock"
-          value={MOCK_DASHBOARD_METRICS.totalStock}
+          value={metrics.totalStock}
           description="Items in stock"
         />
       </div>
@@ -49,7 +123,7 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold mb-4">Stock Status Distribution</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MOCK_STOCK_STATUS}>
+              <BarChart data={stockStatus}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="name" />
                 <YAxis />
@@ -64,7 +138,7 @@ export default function Dashboard() {
           <h2 className="text-lg font-semibold mb-4">Top 5 Shops by Stock Level</h2>
           <div className="h-80">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={MOCK_TOP_SHOPS} layout="vertical">
+              <BarChart data={topShops} layout="vertical">
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis type="number" />
                 <YAxis dataKey="name" type="category" />

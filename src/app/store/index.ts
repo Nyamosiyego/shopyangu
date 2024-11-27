@@ -90,7 +90,7 @@ const useStore = create<StoreState>((set) => ({
       const response = await shopsApi.updateShop(id, shop)
       set(state => ({
         shops: state.shops.map(s => 
-          s.id === id ? response.data : s
+          s._id === id ? response.data : s
         )
       }))
     } catch (error) {
@@ -106,7 +106,7 @@ const useStore = create<StoreState>((set) => ({
     try {
       await shopsApi.deleteShop(id)
       set(state => ({
-        shops: state.shops.filter(s => s.id !== id),
+        shops: state.shops.filter(s => s._id !== id),
         // Reset selected shop if deleted shop was selected
         selectedShop: state.selectedShop === id ? 'all' : state.selectedShop,
         // Reset to first page if current page becomes empty
@@ -142,7 +142,7 @@ const useStore = create<StoreState>((set) => ({
       const response = await productsApi.updateProduct(id, product)
       set(state => ({
         products: state.products.map(p => 
-          p.id === id ? response.data : p
+          p._id === id ? response.data : p
         )
       }))
     } catch (error) {
@@ -158,7 +158,7 @@ const useStore = create<StoreState>((set) => ({
     try {
       await productsApi.deleteProduct(id)
       set(state => ({
-        products: state.products.filter(p => p.id !== id),
+        products: state.products.filter(p => p._id !== id),
         currentPage: 1
       }))
     } catch (error) {

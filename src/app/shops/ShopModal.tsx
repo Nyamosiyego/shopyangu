@@ -19,6 +19,7 @@ export default function ShopModal({ isOpen, onClose, shop }: ShopModalProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    productCount: '',
     logo: ''
   })
 
@@ -27,13 +28,15 @@ export default function ShopModal({ isOpen, onClose, shop }: ShopModalProps) {
       setFormData({
         name: shop.name,
         description: shop.description,
-        logo: shop.logo
+        logo: shop.logo,
+        productCount: shop.productCount.toString()
       })
     } else {
       setFormData({
         name: '',
         description: '',
-        logo: ''
+        logo: '',
+        productCount: ''
       })
     }
   }, [shop])
@@ -44,17 +47,19 @@ export default function ShopModal({ isOpen, onClose, shop }: ShopModalProps) {
 
     try {
       if (shop) {
-        await updateShop(shop.id, {
+        await updateShop(shop._id, {
           name: formData.name,
           description: formData.description,
-          logo: formData.logo
+          logo: formData.logo,
+          productCount: parseInt(formData.productCount)
         })
         toast.success('Shop updated successfully')
       } else {
         await addShop({
           name: formData.name,
           description: formData.description,
-          logo: formData.logo
+          logo: formData.logo,
+          productCount: parseInt(formData.productCount)
         })
         toast.success('Shop created successfully')
       }
@@ -163,6 +168,22 @@ export default function ShopModal({ isOpen, onClose, shop }: ShopModalProps) {
                             onChange={handleChange}
                             className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                             disabled={isSubmitting}
+                          />
+                        </div>
+                        <div>
+                          <label htmlFor="productCount" className="block text-sm font-medium text-gray-700">
+                            Product Count
+                          </label>
+                          <input
+                            type="number"
+                            id="productCount"
+                            name="productCount"
+                            value={formData.productCount}
+                            onChange={handleChange}
+                            className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
+                            required
+                            disabled={isSubmitting}
+                            min={0}
                           />
                         </div>
                         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">

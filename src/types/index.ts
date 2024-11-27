@@ -1,5 +1,5 @@
 export interface Shop {
-    id: string;
+    _id: string;
     name: string;
     description: string;
     logo: string;
@@ -7,7 +7,7 @@ export interface Shop {
   }
   
   export interface Product {
-    id: string;
+    _id: string;
     shopId: string;
     name: string;
     price: number;

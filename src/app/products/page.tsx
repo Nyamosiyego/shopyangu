@@ -1,26 +1,24 @@
-// app/products/page.tsx
+'use client';
 
-'use client'
-
-import { useState, useEffect } from 'react'
-import { 
-  PlusIcon, 
+import { useState, useEffect } from 'react';
+import {
+  PlusIcon,
   MagnifyingGlassIcon,
   PencilIcon,
   TrashIcon,
   ChevronLeftIcon,
-  ChevronRightIcon
-} from '@heroicons/react/24/outline'
-import useStore from '../store'
-import ProductModal from './ProductModal'
-import { Product } from '@/types'
-import debounce from 'lodash/debounce'
+  ChevronRightIcon,
+} from '@heroicons/react/24/outline';
+import useStore from '../store';
+import ProductModal from './ProductModal';
+import { Product } from '@/types';
+import debounce from 'lodash/debounce';
 
 export default function ProductsPage() {
-  const [isModalOpen, setIsModalOpen] = useState(false)
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
   const {
     products,
     shops,
@@ -32,64 +30,67 @@ export default function ProductsPage() {
     setSelectedShop,
     setCurrentPage,
     deleteProduct,
-    fetchProducts
-  } = useStore()
+    fetchProducts,
+  } = useStore();
 
   useEffect(() => {
-    fetchProducts()
-  }, [fetchProducts])
+    fetchProducts();
+  }, [fetchProducts]);
 
   // Debounced search handler
   const debouncedSearch = debounce((value: string) => {
-    setSearchQuery(value)
-    setCurrentPage(1) // Reset to first page when searching
-  }, 300)
+    setSearchQuery(value);
+    setCurrentPage(1); // Reset to first page when searching
+  }, 300);
 
   // Filter products based on search and shop selection
-  const filteredProducts = products.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         product.description.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesShop = selectedShop === 'all' || product.shopId === selectedShop
-    return matchesSearch && matchesShop
-  })
+  const filteredProducts = products.filter((product) => {
+    const matchesSearch =
+      (product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || '') ||
+      (product.description?.toLowerCase().includes(searchQuery.toLowerCase()) || '');
+    const matchesShop = selectedShop === 'all' || product.shopId === selectedShop;
+    return matchesSearch && matchesShop;
+  });
 
   // Pagination calculations
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const currentProducts = filteredProducts.slice(startIndex, endIndex)
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const currentProducts = filteredProducts.slice(startIndex, endIndex);
 
   const handleEdit = (product: Product) => {
-    setSelectedProduct(product)
-    setIsModalOpen(true)
-  }
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
 
   const handleAdd = () => {
-    setSelectedProduct(null)
-    setIsModalOpen(true)
-  }
+    setSelectedProduct(null);
+    setIsModalOpen(true);
+  };
 
   const handleDelete = async (productId: string) => {
     if (window.confirm('Are you sure you want to delete this product?')) {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        await deleteProduct(productId)
+        await deleteProduct(productId);
       } catch (error) {
-        console.error('Error deleting product:', error)
+        console.error('Error deleting product:', error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-  }
+  };
 
   const handleShopFilter = (shopId: string) => {
-    setSelectedShop(shopId)
-    setCurrentPage(1) // Reset to first page when filtering
-  }
+    setSelectedShop(shopId);
+    setCurrentPage(1); // Reset to first page when filtering
+  };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-  }
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8">
@@ -136,7 +137,7 @@ export default function ProductsPage() {
             >
               <option value="all">All Shops</option>
               {shops.map((shop) => (
-                <option key={shop.id} value={shop.id}>
+                <option key={shop._id} value={shop._id}>
                   {shop.name}
                 </option>
               ))}
@@ -170,19 +171,19 @@ export default function ProductsPage() {
                 </thead>
                 <tbody className="divide-y divide-gray-200 bg-white">
                   {currentProducts.map((product) => (
-                    <tr key={product.id}>
+                    <tr key={product._id || null}>
                       <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                         <div className="font-medium text-gray-900">{product.name}</div>
                         <div className="text-gray-500">{product.description}</div>
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {shops.find(shop => shop.id === product.shopId)?.name}
+                        {shops.find((shop) => shop._id === product.shopId)?.name || 'Unknown Shop'}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
                         ${product.price.toFixed(2)}
                       </td>
                       <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                        {product.stockLevel}
+                        {product.stockLevel ?? 'N/A'}
                       </td>
                       <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
                         <button
@@ -193,7 +194,7 @@ export default function ProductsPage() {
                           <span className="sr-only">Edit</span>
                         </button>
                         <button
-                          onClick={() => handleDelete(product.id)}
+                          onClick={() => handleDelete(product._id)}
                           className="text-red-600 hover:text-red-900"
                           disabled={isLoading}
                         >
@@ -222,7 +223,7 @@ export default function ProductsPage() {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
             >
               Next
             </button>
@@ -230,50 +231,46 @@ export default function ProductsPage() {
           <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
             <div>
               <p className="text-sm text-gray-700">
-                Showing <span className="font-medium">{startIndex + 1}</span> to{' '}
-                <span className="font-medium">
-                  {Math.min(endIndex, filteredProducts.length)}
-                </span>{' '}
-                of <span className="font-medium">{filteredProducts.length}</span> results
+                Showing{' '}
+                <span className="font-medium">{startIndex + 1}</span> to{' '}
+                <span className="font-medium">{Math.min(endIndex, filteredProducts.length)}</span> of{' '}
+                <span className="font-medium">{filteredProducts.length}</span> results
               </p>
             </div>
-            <div>
-              <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <button
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1}
+                className="relative inline-flex items-center rounded-l-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <ChevronLeftIcon className="h-5 w-5" />
+              </button>
+              {Array.from({ length: totalPages }).map((_, index) => (
                 <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+                  key={index}
+                  onClick={() => handlePageChange(index + 1)}
+                  className={`relative inline-flex items-center border px-4 py-2 text-sm font-medium ${
+                    currentPage === index + 1
+                      ? 'z-10 border-indigo-500 bg-indigo-50 text-indigo-600'
+                      : 'bg-white text-gray-500 hover:bg-gray-50'
+                  }`}
                 >
-                  <span className="sr-only">Previous</span>
-                  <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
+                  {index + 1}
                 </button>
-                {[...Array(totalPages)].map((_, index) => (
-                  <button
-                    key={index + 1}
-                    onClick={() => handlePageChange(index + 1)}
-                    className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
-                      currentPage === index + 1
-                        ? 'z-10 bg-indigo-600 text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
-                        : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
-                    }`}
-                  >
-                    {index + 1}
-                  </button>
-                ))}
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-                >
-                  <span className="sr-only">Next</span>
-                  <ChevronRightIcon className="h-5 w-5" aria-hidden="true" />
-                </button>
-              </nav>
-            </div>
+              ))}
+              <button
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                className="relative inline-flex items-center rounded-r-md border border-gray-300 bg-white px-2 py-2 text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"
+              >
+                <ChevronRightIcon className="h-5 w-5" />
+              </button>
+            </nav>
           </div>
         </div>
       </div>
 
+      {/* Modal */}
       <ProductModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -282,3 +279,5 @@ export default function ProductsPage() {
     </div>
   )
 }
+
+

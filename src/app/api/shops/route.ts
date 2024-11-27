@@ -1,39 +1,86 @@
-import { NextResponse } from 'next/server'
-import { MOCK_SHOPS } from '@/app/constants'
+import { NextRequest, NextResponse } from 'next/server';
+import dbConnect from '@/lib/mongoose';
+import Shop from '@/models/Shop';
 
-export async function GET() {
-  return NextResponse.json(MOCK_SHOPS)
-}
-
-export async function POST(request: Request) {
-  const newShop = await request.json()
-  const shop = {
-    id: Math.random().toString(36).substr(2, 9),
-    productCount: 0,
-    ...newShop
+// GET all shops
+export async function GET(request: NextRequest) {
+  try {
+    await dbConnect();
+    const shops = await Shop.find({});
+    return NextResponse.json(shops);
+  } catch (error) {
+    console.error('Fetch shops error:', error);
+    return NextResponse.json({ error: 'Failed to fetch shops' }, { status: 500 });
   }
-  return NextResponse.json(shop)
 }
 
-export async function PUT(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const id = searchParams.get('id')
+// POST create a shop
+export async function POST(request: NextRequest) {
+  try {
+    await dbConnect();
+    const shopData = await request.json();
+    
+    const newShop = await Shop.create({
+      ...shopData,
+      productCount: 0
+    });
+
+    return NextResponse.json(newShop, { status: 201 });
+  } catch (error) {
+    console.error('Create shop error:', error);
+    return NextResponse.json({ error: 'Failed to create shop' }, { status: 500 });
+  }
+}
+
+// PUT update a shop
+export async function PUT(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const id = searchParams.get('id');
   
   if (!id) {
-    return NextResponse.json({ error: 'Shop ID is required' }, { status: 400 })
+    return NextResponse.json({ error: 'Shop ID is required' }, { status: 400 });
   }
 
-  const updates = await request.json()
-  return NextResponse.json(updates)
+  try {
+    await dbConnect();
+    const updates = await request.json();
+    const updatedShop = await Shop.findByIdAndUpdate(
+      id, 
+      updates, 
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedShop) {
+      return NextResponse.json({ error: 'Shop not found' }, { status: 404 });
+    }
+
+    return NextResponse.json(updatedShop);
+  } catch (error) {
+    console.error('Update shop error:', error);
+    return NextResponse.json({ error: 'Failed to update shop' }, { status: 500 });
+  }
 }
 
-export async function DELETE(request: Request) {
-  const { searchParams } = new URL(request.url)
-  const id = searchParams.get('id')
+// DELETE remove a shop
+export async function DELETE(request: NextRequest) {
+  const searchParams = request.nextUrl.searchParams;
+  const id = searchParams.get('id');
   
   if (!id) {
-    return NextResponse.json({ error: 'Shop ID is required' }, { status: 400 })
+    return NextResponse.json({ error: 'Shop ID is required' }, { status: 400 });
   }
 
-  return NextResponse.json({ message: 'Shop deleted' })
+  try {
+    await dbConnect();
+    const deletedShop = await Shop.findByIdAndDelete(id);
+
+    if (!deletedShop) {
+      return NextResponse.json({ error: 'Shop not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ message: 'Shop deleted' });
+  } catch (error) {
+    console.error('Delete shop error:', error);
+    return NextResponse.json({ error: 'Failed to delete shop' }, { status: 500 });
+  }
 }

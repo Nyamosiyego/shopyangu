@@ -102,14 +102,14 @@ export const addProduct = (product: Omit<Product, 'id'>) => {
 export const updateProduct = (id: string, updates: Partial<Product>) => {
   const products = getProducts()
   const updatedProducts = products.map(product =>
-    product.id === id ? { ...product, ...updates } : product
+    product._id === id ? { ...product, ...updates } : product
   )
   setProducts(updatedProducts)
-  return updatedProducts.find(p => p.id === id)
+  return updatedProducts.find(p => p._id === id)
 }
 
 export const deleteProduct = (id: string) => {
   const products = getProducts()
-  const filteredProducts = products.filter(product => product.id !== id)
+  const filteredProducts = products.filter(product => product._id !== id)
   setProducts(filteredProducts)
 }

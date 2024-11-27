@@ -3,8 +3,10 @@
 import { Fragment, useEffect, useState } from 'react'
 import { Dialog, Transition } from '@headlessui/react'
 import { XMarkIcon } from '@heroicons/react/24/outline'
-import { Product } from '@/types'
-import { MOCK_SHOPS } from '../constants'
+import { Product, Shop } from '@/types'
+import { shopsApi } from '../api/shops' 
+import { productsApi } from '../api/products' 
+import toast from 'react-hot-toast'
 
 interface ProductModalProps {
   isOpen: boolean
@@ -14,24 +16,46 @@ interface ProductModalProps {
 
 export default function ProductModal({ isOpen, onClose, product }: ProductModalProps) {
   const [formData, setFormData] = useState({
+    _id: '', // Product ID
     name: '',
     description: '',
     price: '',
     stockLevel: '',
     shopId: ''
   })
+  const [shops, setShops] = useState<Shop[]>([])
+  const [loadingShops, setLoadingShops] = useState(true)
 
+  // Fetch shops for the dropdown
+  useEffect(() => {
+    const fetchShops = async () => {
+      try {
+        const response = await shopsApi.getShops()
+        setShops(response.data)
+      } catch (error) {
+        console.error('Error fetching shops:', error)
+        toast.error('Failed to fetch shops')
+      } finally {
+        setLoadingShops(false)
+      }
+    }
+    fetchShops()
+  }, [])
+
+  // Pre-fill form data if editing a product
   useEffect(() => {
     if (product) {
       setFormData({
+        _id: product._id,
         name: product.name,
         description: product.description,
         price: product.price.toString(),
-        stockLevel: product.stockLevel.toString(),
+        stockLevel: product.stockLevel?.toString() || '',
         shopId: product.shopId
       })
     } else {
       setFormData({
+        _id: '',
         name: '',
         description: '',
         price: '',
@@ -41,15 +65,30 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
     }
   }, [product])
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // const formattedData = {
-    //   ...formData,
-    //   price: parseFloat(formData.price),
-    //   stockLevel: parseInt(formData.stockLevel, 10)
-    // }
-    // Handle form submission using store
-    onClose()
+
+    const formattedData = {
+      name: formData.name,
+      description: formData.description,
+      price: parseFloat(formData.price),
+      stockLevel: formData.stockLevel ? parseInt(formData.stockLevel) : undefined,
+      shopId: formData.shopId
+    }
+
+    try {
+      if (formData._id) {
+        await productsApi.updateProduct(formData._id, formattedData)
+        toast.success('Product updated successfully')
+      } else {
+        await productsApi.createProduct(formattedData)
+        toast.success('Product created successfully')
+      }
+      onClose()
+    } catch (error) {
+      console.error('Error submitting product:', error)
+      toast.error('Failed to save product')
+    }
   }
 
   return (
@@ -75,7 +114,7 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
               enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
               enterTo="opacity-100 translate-y-0 sm:scale-100"
               leave="ease-in duration-200"
-              leaveFrom="opacity-100 translate-y-0 sm:scale-100"
+              leaveFrom="opacity-0 translate-y-0 sm:scale-100"
               leaveTo="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
             >
               <Dialog.Panel className="relative transform overflow-hidden rounded-lg bg-white px-4 pb-4 pt-5 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg sm:p-6">
@@ -167,11 +206,15 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                             required
                           >
                             <option value="">Select a shop</option>
-                            {MOCK_SHOPS.map(shop => (
-                              <option key={shop.id} value={shop.id}>
-                                {shop.name}
-                              </option>
-                            ))}
+                            {loadingShops ? (
+                              <option disabled>Loading shops...</option>
+                            ) : (
+                              shops.map((shop) => (
+                                <option key={shop._id} value={shop._id}>
+                                  {shop.name}
+                                </option>
+                              ))
+                            )}
                           </select>
                         </div>
                         <div className="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
@@ -183,7 +226,9 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
                           </button>
                           <button
                             type="button"
-                            className="mt-3 inline-flex w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
+                            className="mt-3 inline-flex w
+
+-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 sm:mt-0 sm:w-auto"
                             onClick={onClose}
                           >
                             Cancel
