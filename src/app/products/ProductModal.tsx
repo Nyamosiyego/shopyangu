@@ -43,11 +43,11 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    const formattedData = {
-      ...formData,
-      price: parseFloat(formData.price),
-      stockLevel: parseInt(formData.stockLevel, 10)
-    }
+    // const formattedData = {
+    //   ...formData,
+    //   price: parseFloat(formData.price),
+    //   stockLevel: parseInt(formData.stockLevel, 10)
+    // }
     // Handle form submission using store
     onClose()
   }

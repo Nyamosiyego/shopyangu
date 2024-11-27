@@ -32,7 +32,7 @@ interface StoreState {
   clearError: () => void
 }
 
-const useStore = create<StoreState>((set, get) => ({
+const useStore = create<StoreState>((set) => ({
   products: [],
   shops: [],
   loading: false,

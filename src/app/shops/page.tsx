@@ -3,6 +3,7 @@
 
 import { useEffect } from 'react'
 import useStore from '../store'
+import Image from 'next/image'
 
 export default function ShopsPage() {
   const { 
@@ -20,7 +21,7 @@ export default function ShopsPage() {
 
   useEffect(() => {
     fetchShops().catch(console.error)
-  }, [])
+  }, [fetchShops])
 
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
@@ -57,7 +58,7 @@ export default function ShopsPage() {
           <div key={shop.id} className="shop-card">
             <h3>{shop.name}</h3>
             <p>{shop.description}</p>
-            <img src={shop.logo} alt={shop.name} />
+            <Image width={30} height={30} src={shop.logo} alt={shop.name} />
             <p>Products: {shop.productCount}</p>
             <button onClick={() => handleDelete(shop.id)}>Delete</button>
             {/* Add edit button and functionality */}

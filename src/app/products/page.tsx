@@ -37,7 +37,7 @@ export default function ProductsPage() {
 
   useEffect(() => {
     fetchProducts()
-  }, [])
+  }, [fetchProducts])
 
   // Debounced search handler
   const debouncedSearch = debounce((value: string) => {
