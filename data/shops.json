@@ -1,0 +1,39 @@
+{
+    "shops": [
+      {
+        "id": "1",
+        "name": "Electronics Hub",
+        "description": "Premium electronics and gadgets",
+        "logo": "/shop-1.png",
+        "productCount": 45
+      },
+      {
+        "id": "2",
+        "name": "Fashion Square",
+        "description": "Trendy fashion and accessories",
+        "logo": "/shop-2.png",
+        "productCount": 32
+      },
+      {
+        "id": "3",
+        "name": "Home Essentials",
+        "description": "Everything for your home",
+        "logo": "/shop-3.png",
+        "productCount": 28
+      },
+      {
+        "id": "4",
+        "name": "Sports Center",
+        "description": "Sports equipment and gear",
+        "logo": "/shop-4.png",
+        "productCount": 37
+      },
+      {
+        "id": "5",
+        "name": "Beauty Boulevard",
+        "description": "Beauty and skincare products",
+        "logo": "/shop-5.png",
+        "productCount": 23
+      }
+    ]
+  }
