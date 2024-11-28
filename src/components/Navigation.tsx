@@ -17,8 +17,8 @@ import {
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Products', href: '/products', icon: ShoppingBagIcon },
   { name: 'Shops', href: '/shops', icon: BuildingStorefrontIcon },
+  { name: 'Products', href: '/products', icon: ShoppingBagIcon },
   { name: 'Analytics', href: '/analytics', icon: ChartBarIcon },
 ]
 
