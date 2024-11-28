@@ -81,7 +81,7 @@ export const getTopShops = () => {
   return shops.map(shop => ({
     name: shop.name,
     stock: products
-      .filter(product => product.shopId === shop.id)
+      .filter(product => product.shopId === shop._id)
       .reduce((acc, product) => acc + product.stockLevel, 0)
   }))
   .sort((a, b) => b.stock - a.stock)

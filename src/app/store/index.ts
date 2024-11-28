@@ -17,7 +17,7 @@ interface StoreState {
   // Async actions
   fetchShops: () => Promise<void>
   fetchProducts: () => Promise<void>
-  addShop: (shop: Omit<Shop, 'id' | 'productCount'>) => Promise<void>
+  addShop: (shop: Omit<Shop, 'id'>) => Promise<void>
   updateShop: (id: string, shop: Partial<Shop>) => Promise<void>
   deleteShop: (id: string) => Promise<void>
   addProduct: (product: Omit<Product, 'id'>) => Promise<void>

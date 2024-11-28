@@ -46,8 +46,8 @@ export default function Dashboard() {
         const totalShops = shops.length
 
         // Aggregate stock status
-        const stockStatusData = products.reduce((acc, product) => {
-          let status;
+        const stockStatusData:any = products.reduce<{ name: string; value: number }[]>((acc, product) => {
+          let status: string;
           if (product.stockLevel > 5) {
             status = 'In Stock';
           } else if (product.stockLevel === 0) {
@@ -55,14 +55,17 @@ export default function Dashboard() {
           } else {
             status = 'Low Stock';
           }
-          const existing = acc.find(item => item.name === status)
+          
+          const existing = acc.find(item => item.name === status);
+          
           if (existing) {
-            existing.value += 1
+            existing.value += 1;
           } else {
-            acc.push({ name: status, value: 1 })
+            acc.push({ name: status, value: 1 });
           }
-          return acc
-        }, [])
+          
+          return acc;
+        }, []);
 
         // Determine top shops by stock level
         const shopStockLevels = shops.map(shop => ({
@@ -71,7 +74,7 @@ export default function Dashboard() {
             .filter(product => product.shopId === shop._id)
             .reduce((sum, product) => sum + product.stockLevel, 0)
         }))
-        const topShopsData = shopStockLevels
+        const topShopsData:any = shopStockLevels
           .sort((a, b) => b.stock - a.stock)
           .slice(0, 5)
 

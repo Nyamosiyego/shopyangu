@@ -68,7 +68,7 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    const formattedData = {
+    const formattedData:any = {
       name: formData.name,
       description: formData.description,
       price: parseFloat(formData.price),

@@ -56,6 +56,7 @@ export default function ShopModal({ isOpen, onClose, shop }: ShopModalProps) {
         toast.success('Shop updated successfully')
       } else {
         await addShop({
+          _id: '',
           name: formData.name,
           description: formData.description,
           logo: formData.logo,
