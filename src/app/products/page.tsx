@@ -13,11 +13,15 @@ import useStore from '../store';
 import ProductModal from './ProductModal';
 import { Product } from '@/types';
 import debounce from 'lodash/debounce';
+import toast from 'react-hot-toast'
 
 export default function ProductsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [priceFilter, setPriceFilter] = useState<number | null>(null);
+  const [stockFilter, setStockFilter] = useState<number | null>(null);
+
 
   const {
     products,
@@ -31,11 +35,13 @@ export default function ProductsPage() {
     setCurrentPage,
     deleteProduct,
     fetchProducts,
+    fetchShops, 
   } = useStore();
 
   useEffect(() => {
     fetchProducts();
-  }, [fetchProducts]);
+    fetchShops();
+  }, [fetchProducts, fetchShops]);
 
   // Debounced search handler
   const debouncedSearch = debounce((value: string) => {
@@ -49,8 +55,12 @@ export default function ProductsPage() {
       (product.name?.toLowerCase().includes(searchQuery.toLowerCase()) || '') ||
       (product.description?.toLowerCase().includes(searchQuery.toLowerCase()) || '');
     const matchesShop = selectedShop === 'all' || product.shopId === selectedShop;
-    return matchesSearch && matchesShop;
+    const matchesPrice = !priceFilter || product.price >= priceFilter;
+    const matchesStock = !stockFilter || product.stockLevel >= stockFilter;
+  
+    return matchesSearch && matchesShop && matchesPrice && matchesStock;
   });
+  
 
   // Pagination calculations
   const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
@@ -73,8 +83,11 @@ export default function ProductsPage() {
       setIsLoading(true);
       try {
         await deleteProduct(productId);
+        fetchProducts(); // Trigger re-fetch
+        toast.success('Product deleted successfully');
       } catch (error) {
         console.error('Error deleting product:', error);
+        toast.error('Failed to delete product');
       } finally {
         setIsLoading(false);
       }
@@ -143,6 +156,20 @@ export default function ProductsPage() {
               ))}
             </select>
           </div>
+          <input
+            type="number"
+            placeholder="Min Price"
+            onChange={(e) => setPriceFilter(Number(e.target.value) || null)}
+            className="block w-full rounded-md border-gray-300 sm:text-sm"
+          />
+
+          {/* Stock Filter */}
+          <input
+            type="number"
+            placeholder="Min Stock"
+            onChange={(e) => setStockFilter(Number(e.target.value) || null)}
+            className="block w-full rounded-md border-gray-300 sm:text-sm"
+  />
         </div>
 
         {/* Table */}

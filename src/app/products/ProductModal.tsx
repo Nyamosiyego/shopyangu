@@ -7,6 +7,7 @@ import { Product, Shop } from '@/types'
 import { shopsApi } from '../api/shops' 
 import { productsApi } from '../api/products' 
 import toast from 'react-hot-toast'
+import useStore from '../store';
 
 interface ProductModalProps {
   isOpen: boolean
@@ -25,6 +26,18 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
   })
   const [shops, setShops] = useState<Shop[]>([])
   const [loadingShops, setLoadingShops] = useState(true)
+  const {
+    products,
+    searchQuery,
+    selectedShop,
+    currentPage,
+    itemsPerPage,
+    setSearchQuery,
+    setSelectedShop,
+    setCurrentPage,
+    deleteProduct,
+    fetchProducts,
+  } = useStore();
 
   // Fetch shops for the dropdown
   useEffect(() => {
@@ -66,31 +79,33 @@ export default function ProductModal({ isOpen, onClose, product }: ProductModalP
   }, [product])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    const formattedData:any = {
+    e.preventDefault();
+  
+    const formattedData: any = {
       name: formData.name,
       description: formData.description,
       price: parseFloat(formData.price),
       stockLevel: formData.stockLevel ? parseInt(formData.stockLevel) : undefined,
-      shopId: formData.shopId
-    }
-
+      shopId: formData.shopId,
+    };
+  
     try {
       if (formData._id) {
-        await productsApi.updateProduct(formData._id, formattedData)
-        toast.success('Product updated successfully')
+        await productsApi.updateProduct(formData._id, formattedData);
+        toast.success('Product updated successfully');
       } else {
-        await productsApi.createProduct(formattedData)
-        toast.success('Product created successfully')
+        await productsApi.createProduct(formattedData);
+        toast.success('Product created successfully');
       }
-      onClose()
+      fetchProducts();
+      onClose();
     } catch (error) {
-      console.error('Error submitting product:', error)
-      toast.error('Failed to save product')
+      console.error('Error submitting product:', error);
+      toast.error('Failed to save product');
     }
-  }
-
+  };
+  
+  
   return (
     <Transition.Root show={isOpen} as={Fragment}>
       <Dialog as="div" className="relative z-50" onClose={onClose}>

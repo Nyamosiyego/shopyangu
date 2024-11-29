@@ -40,7 +40,7 @@ const useStore = create<StoreState>((set) => ({
   searchQuery: '',
   selectedShop: 'all',
   currentPage: 1,
-  itemsPerPage: 10,
+  itemsPerPage: 5,
 
   fetchShops: async () => {
     set({ loading: true, error: null })
